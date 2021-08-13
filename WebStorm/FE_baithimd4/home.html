@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Trang Login</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <script>
+        function loadCity() {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/cities",
+                success: function (data) {
+                    let str = "<table id=\"table\" border=\"1\" style=\"width: 100%\"><tr><th>#</th><th>Thành phố</th><th>Quốc gia</th><th>Tác vụ</th></tr>"
+                    for (let i = 0; i < data.length; i++) {
+                        let a = i + 1
+                        str += "<tr><td>" + a + "</td><td><a href='#' onclick='viewDetail(" + data[i].id + ")'>" + data[i].name + "</a></td><td>" + data[i].country.name +
+                            "</td><td><a href='#' onclick='showFormEdit(" + data[i].id + ")' >Chỉnh sửa</a>|<a href='#' onclick='showFormDelete(" + data[i].id + ")' >Xóa</a></td></tr>"
+                    }
+                    str += "</table>"
+                    document.getElementById("main").innerHTML = str
+                }
+            })
+        }
+
+        function viewDetail(id) {
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/cities/" + id,
+                success: function (data) {
+                    console.log(data)
+                    document.getElementById("main").innerHTML = 'Edit Information! <br><input type="hidden" disabled value="' + data.id + '"><br>' +
+                        'Name : <input type="text" id="name" disabled value="' + data.name + '"><br>' +
+                        'Country : <input type="number" id="country" disabled value="' + data.country.name + '"><br>' +
+                        'Area : <input type="number" id="area" disabled value="' + data.area + '"> <br>' +
+                        'Population : <input type="text" id="population" disabled value="' + data.population + '"><br> ' +
+                        'GDP: <input type="text" disabled id="GDP" value="' + data.gdp + '"> <br>' +
+                        'Description : <input type="text" disabled id="description" value="' + data.description + '"> <br>'
+
+
+                },
+
+            })
+
+        }
+
+        function showFormEdit(id){
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/cities/" + id,
+                success: function (data) {
+                    document.getElementById("main").innerHTML = 'Information! <br> <input type="hidden" id="id" disabled value="' + data.id + '"><br>' +
+                        'Name : <input type="text" id="name"  value="' + data.name + '"><br>' +
+                        'Country : <select name="" id="country"></select><br>' +
+                        'Area : <input type="number" id="area"  value="' + data.area + '"> <br>' +
+                        'Population : <input type="text" id="population" value="' + data.population + '"><br> ' +
+                        'GDP: <input type="text" id="gdp" value="' + data.gdp + '"> <br>' +
+                        'Description : <input type="text" id="description" value="' + data.description + '"> <br><button onclick="saveEdit()">Save</button>'
+                    $.ajax({
+                        type: "GET",
+                        url: "http://localhost:8080/countries",
+                        success: function (data1) {
+                            let str = ""
+                            for (let i = 0; i < data1.length; i++) {
+                                if (data.country.id == data1[i].id){
+                                    str += "<option selected='selected' value='" + data1[i].id + "'>" + data1[i].name + "</option>"
+                                }else {
+                                    str += "<option value='" + data1[i].id + "'>" + data1[i].name + "</option>"
+                                }
+                            }
+                            document.getElementById("country").innerHTML = str
+                        }
+                    })
+                }
+            })
+        }
+        function deleteCity(){
+            let id = document.getElementById("id").value;
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type: "DELETE",
+                url: "http://localhost:8080/cities/" + id,
+                success: loadCity,
+            })
+        }
+        function showFormDelete(id){
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/cities/" + id,
+                success: function (data) {
+                    document.getElementById("main").innerHTML = 'Do you want to continue deleting? <br><input type="hidden" id="id" disabled value="' + data.id + '"><br>' +
+                        'Name : <input type="text" id="name" disabled value="' + data.name + '"><br>' +
+                        'Country : <input type="number" id="country" disabled value="' + data.country.name + '"><br>' +
+                        'Area : <input type="number" id="area" disabled value="' + data.area + '"> <br>' +
+                        'Population : <input type="text" id="population" disabled value="' + data.population + '"><br> ' +
+                        'GDP: <input type="text" disabled id="gdp" value="' + data.gdp + '"> <br>' +
+                        'Description : <input type="text" disabled id="description" value="' + data.description + '"> <br>' +
+                        '<button onclick="deleteCity()" >Delete</button>| <button onclick="loadCity()">Cancle</button>'
+
+
+                },
+
+            })
+        }
+
+        function saveEdit(){
+            let id = document.getElementById("id").value
+            let name = document.getElementById("name").value;
+            let country = document.getElementById("country").value;
+            let area = document.getElementById("area").value;
+            let population = document.getElementById("population").value;
+            let GDP = document.getElementById("gdp").value;
+            let description = document.getElementById("description").value;
+            let city = {
+                name: name,
+                country: {
+                    id: country
+                },
+                area: area,
+                population: population,
+                gdp: GDP,
+                description: description
+            }
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type: "PUT",
+                url: "http://localhost:8080/cities/" + id,
+                data: JSON.stringify(city),
+                success: loadCity,
+                error: function (error) {
+
+                }
+            });
+        }
+        function showFormCreate() {
+            document.getElementById("main").innerHTML = "<table>\n" +
+                "    <tr>\n" +
+                "        <td>Tên thành phố</td>\n" +
+                "        <td><input type=\"text\" id=\"name\"></td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td>Quốc Gia</td>\n" +
+                "        <td><select name=\"\" id=\"country\"></select></td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td>Diện tích</td>\n" +
+                "        <td><input type=\"text\" id=\"area\"></td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td>GDP</td>\n" +
+                "        <td><input type=\"text\" id=\"gdp\"></td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td>Dân số</td>\n" +
+                "        <td><input type=\"text\" id=\"population\"></td>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td>Mô tả</td>\n" +
+                "        <td><input type=\"text\" id=\"description\"></td>\n" +
+                "    </tr><tr><td colspan=\"2\"><button onclick='addCity()'>Create</button></td></tr></table>\n"
+
+            $.ajax({
+                type: "GET",
+                url: "http://localhost:8080/countries",
+                success: function (data) {
+                    let str = ""
+                    for (let i = 0; i < data.length; i++) {
+                        str += "<option value='" + data[i].id + "'>" + data[i].name + "</option>"
+                    }
+                    document.getElementById("country").innerHTML = str
+                }
+            })
+        }
+
+        function addCity() {
+            let name = document.getElementById("name").value;
+            let country = document.getElementById("country").value;
+            let area = document.getElementById("area").value;
+            let population = document.getElementById("population").value;
+            let GDP = document.getElementById("gdp").value;
+            let description = document.getElementById("description").value;
+            let city = {
+                name: name,
+                country: {
+                    id: country
+                },
+                area: area,
+                population: population,
+                gdp: GDP,
+                description: description
+            }
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type: "POST",
+                url: "http://localhost:8080/cities",
+                data: JSON.stringify(city),
+                success: function (){
+                    document.getElementById("main").innerHTML = "";
+                    loadCity()
+                },
+                error: function (error) {
+
+                }
+            });
+        }
+
+    </script>
+</head>
+<body onload="loadCity()">
+<b style="font-size: 30px" onclick="loadCity()">Danh sách thành phố</b>
+<button onclick="showFormCreate()">Create new city</button>
+<div id="main" style="width: 50%">
+
+</div>
+
+
+<script>
+
+</script>
+</body>
+</html>
